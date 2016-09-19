@@ -1,0 +1,110 @@
+/*drop database define if exists
+DROP DATABASE IF EXISTS test;
+DROP TABLE IF EXISTS review;
+DROP TABLE IF EXISTS product;
+DROP TABLE IF EXISTS user;
+DROP TABLE IF EXISTS brand;
+*/;
+
+DROP DATABASE IF EXISTS test;
+
+#create database: test
+CREATE DATABASE IF NOT EXISTS test DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
+USE test;
+
+#create table brand
+CREATE TABLE IF NOT EXISTS brand (
+    id          INT UNSIGNED NOT NULL AUTO_INCREMENT    COMMENT 'brand id',
+    name        CHAR(20) NOT NULL                       COMMENT 'brand name',
+    description VARCHAR(200) DEFAULT ''             COMMENT 'brand description',
+    PRIMARY KEY(id)
+) ENGINE=INNODB ;
+
+
+#create table product
+CREATE TABLE IF NOT EXISTS product (
+    id          INT UNSIGNED NOT NULL AUTO_INCREMENT   COMMENT 'product id',
+    name        CHAR(20) NOT NULL                      COMMENT 'product name',
+    brand_id    INT UNSIGNED NOT NULL                  COMMENT 'brand id',
+    price       DECIMAL(10,2) NOT NULL                 COMMENT 'product price',
+    color       CHAR(20) NOT NULL                      COMMENT 'product color',
+    status      ENUM('in-stock','out-stock','archived') ,
+    description VARCHAR(200) DEFAULT ''             ,
+    create_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
+    PRIMARY KEY(id),
+    INDEX (brand_id),
+    FOREIGN KEY (brand_id)
+        REFERENCES brand(id)
+        ON DELETE CASCADE
+) ENGINE=INNODB ;
+
+
+
+#create table user
+CREATE TABLE IF NOT EXISTS user (
+    id          INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'user id',
+    name        CHAR(20) NOT NULL           COMMENT 'user name',
+    user_type   ENUM('customer','merchant') COMMENT 'user type must be customer or merchant',
+    email       CHAR(100) NOT NULL          COMMENT 'user email must be unique',
+    birthday    DATE                        COMMENT 'user birthday',
+    PRIMARY KEY(id),
+    UNIQUE (email)
+) ENGINE=INNODB ;
+
+
+#create table review
+CREATE TABLE IF NOT EXISTS review (
+    id          INT UNSIGNED NOT NULL  AUTO_INCREMENT ,
+    rating      INT UNSIGNED NOT NULL  DEFAULT 0  COMMENT 'must be between 0 and 10',
+    comment     VARCHAR(300) NOT NULL  DEFAULT '' ,
+    user_id     INT UNSIGNED NOT NULL     COMMENT 'review user id',
+    product_id  INT UNSIGNED NOT NULL     COMMENT 'product id',
+    PRIMARY KEY(id),
+    INDEX (user_id),
+    INDEX (product_id),
+    FOREIGN KEY (product_id)
+        REFERENCES product(id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (user_id)
+        REFERENCES user(id)
+        ON DELETE CASCADE
+) ENGINE=INNODB ;
+
+
+/* create view for store product last review comment*/;
+CREATE VIEW last_review_product AS
+        select u.name as user_name,rr.rating,rr.comment,rr.product_id from
+        (select id,user_id,rating,comment,product_id from review where id in (select max(id) from review group by product_id)) as rr
+        inner join user u on rr.user_id=u.id
+
+/*create trigger to check review rating must be between 0 and 10 */;
+
+DELIMITER $$
+CREATE TRIGGER trg_insert_check_review_rating
+BEFORE INSERT ON review
+FOR EACH ROW
+BEGIN
+  IF (NEW.rating >10 OR NEW.rating<0) THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'action insert review.rating must be between 0 and 10';
+  END IF;
+END;
+$$
+
+DELIMITER ;
+
+
+DELIMITER $$
+CREATE TRIGGER trg_update_check_review_rating
+BEFORE UPDATE ON review
+FOR EACH ROW
+BEGIN
+  IF (NEW.rating >10 OR NEW.rating<0) THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'action update review.rating must be between 0 and 10';
+  END IF;
+END;
+
+$$
+
+DELIMITER ;
+
+

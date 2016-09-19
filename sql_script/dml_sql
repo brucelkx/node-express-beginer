@@ -1,0 +1,36 @@
+/*clear table data*/
+
+truncate table review;
+truncate table user;
+truncate table brand;
+truncate table product;
+
+/*insert init data for tables*/
+
+
+insert into user(name,user_type,email,birthday) values('user001','customer','user001@user.com','2016-10-10');
+insert into user(name,user_type,email,birthday) values('user002','customer','user002@user.com','2017-10-10');
+insert into user(name,user_type,email,birthday) values('user003','customer','user003@user.com','2018-10-10');
+insert into user(name,user_type,email,birthday) values('user004','merchant','user004@user.com','2016-01-01');
+insert into user(name,user_type,email,birthday) values('user005','merchant','user005@user.com','2016-02-02');
+insert into user(name,user_type,email,birthday) values('user006','merchant','user006@user.com','2016-03-03');
+
+
+insert into brand(name,description) values('brand001','top one');
+insert into brand(name,description) values('brand002','top two');
+insert into brand(name,description) values('brand003','top three');
+insert into brand(name,description) values('brand004','top four');
+
+insert into product(name,price,color,status,description,brand_id) select 'product001',100,'red','in-stock','it is hot',id from brand where name in ('brand001');
+insert into product(name,price,color,status,description,brand_id) select 'product002',100.50,'green','out-stock','it is hot',id from brand where name in ('brand001');
+insert into product(name,price,color,status,description,brand_id) select 'product003',80,'black','archived','it is cheap',id from brand where name in ('brand003');
+
+insert into review(rating,comment,product_id,user_id) select 1,'great product',p.id,u.id from (select id from product where name='product001') as p,(select id from user where name='user001') as u;
+insert into review(rating,comment,product_id,user_id) select 1,'great product',p.id,u.id from (select id from product where name='product001') as p,(select id from user where name='user002') as u;
+insert into review(rating,comment,product_id,user_id) select 1,'great product',p.id,u.id from (select id from product where name='product003') as p,(select id from user where name='user003') as u;
+
+
+
+
+
+
