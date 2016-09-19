@@ -3,9 +3,9 @@
 
 ## Build API Service Environment:
 
-* [os: mac 10.11.5][]
-* node:v6.3.0][]
-* mysql:5.7.14][]
+* os: mac 10.11.5
+* node:v6.3.0
+* mysql:5.7.14
 
 ## Sample To RUN
 notes: need install nodejs, express,express-generator global first
